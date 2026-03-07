@@ -1,6 +1,9 @@
 name: Aggiorna Comunicati
 
 on:
+  push:
+    branches: [master]
+    paths: [scripts/**, .github/workflows/scrape.yml]
   schedule:
     - cron: '0 * * * *'  # Ogni ora
   workflow_dispatch:        # Manuale
