@@ -254,10 +254,10 @@ function render(data) {
           ${c.date ? `<div class="item-date">${formatDate(c.date)}</div>` : ''}
         </div>
         <div class="item-actions">
-          <a class="btn-icon" href="${c.viewURL}" target="_blank" rel="noopener" title="Visualizza">
+          <a class="btn-icon" href="${c.viewURL}" onclick="openExternal(event)" title="Visualizza">
             👁
           </a>
-          <a class="btn-icon" href="${c.downloadURL}" target="_blank" rel="noopener" title="Scarica">
+          <a class="btn-icon" href="${c.downloadURL}" onclick="openExternal(event)" title="Scarica">
             ⬇
           </a>
         </div>
@@ -284,6 +284,14 @@ async function init() {
       </div>`;
     document.getElementById('status').textContent = 'Errore di connessione';
   }
+}
+
+// Open links in Safari (not inside PWA standalone mode)
+function openExternal(e) {
+  e.preventDefault();
+  const url = e.currentTarget.href;
+  // In standalone PWA on iOS, window.open opens Safari
+  window.open(url, '_blank');
 }
 
 // Register Service Worker
