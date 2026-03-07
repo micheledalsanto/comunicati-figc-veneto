@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:www.figcvenetocalcio.it)",
+      "Bash(gh auth:*)",
+      "Bash(node:*)",
+      "Bash(curl:*)",
+      "Bash(sort:*)"
+    ]
+  }
+}

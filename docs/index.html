@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#004b87">
+<title>Comunicati FIGC Veneto</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    background: #f2f2f7;
+    color: #1c1c1e;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  .safe-top { height: env(safe-area-inset-top, 0); background: #004b87; }
+
+  header {
+    background: #004b87;
+    color: #fff;
+    padding: 12px 16px 14px;
+    text-align: center;
+  }
+
+  header h1 { font-size: 18px; font-weight: 600; }
+
+  .status {
+    font-size: 12px;
+    color: rgba(255,255,255,0.7);
+    margin-top: 4px;
+  }
+
+  .list {
+    padding: 8px 0;
+  }
+
+  .item {
+    display: flex;
+    align-items: center;
+    background: #fff;
+    margin: 0 16px 1px;
+    padding: 14px 16px;
+    text-decoration: none;
+    color: inherit;
+    position: relative;
+    -webkit-tap-highlight-color: rgba(0,0,0,0.05);
+  }
+
+  .item:first-child { border-radius: 12px 12px 0 0; }
+  .item:last-child { border-radius: 0 0 12px 12px; margin-bottom: 16px; }
+  .item:only-child { border-radius: 12px; }
+
+  .item:active { background: #e5e5ea; }
+
+  .item-info { flex: 1; min-width: 0; }
+
+  .item-title {
+    font-size: 16px;
+    font-weight: 500;
+  }
+
+  .item-date {
+    font-size: 13px;
+    color: #8e8e93;
+    margin-top: 2px;
+  }
+
+  .item-actions {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+    margin-left: 12px;
+  }
+
+  .btn-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #f2f2f7;
+    text-decoration: none;
+    color: #004b87;
+    font-size: 16px;
+  }
+
+  .btn-icon:active { background: #d1d1d6; }
+
+  .badge-new {
+    display: inline-block;
+    background: #ff3b30;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 2px 7px;
+    border-radius: 8px;
+    margin-left: 8px;
+    vertical-align: middle;
+  }
+
+  .empty {
+    text-align: center;
+    padding: 60px 20px;
+    color: #8e8e93;
+  }
+
+  .empty-icon { font-size: 48px; margin-bottom: 12px; }
+
+  .refresh-btn {
+    display: block;
+    margin: 0 auto;
+    padding: 10px 24px;
+    border: none;
+    border-radius: 10px;
+    background: #004b87;
+    color: #fff;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    margin-top: 16px;
+  }
+
+  .refresh-btn:active { opacity: 0.7; }
+
+  .loading {
+    text-align: center;
+    padding: 60px 20px;
+    color: #8e8e93;
+  }
+
+  .spinner {
+    width: 28px;
+    height: 28px;
+    border: 3px solid #d1d1d6;
+    border-top-color: #004b87;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin: 0 auto 12px;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .count-banner {
+    background: #34c759;
+    color: #fff;
+    text-align: center;
+    padding: 10px;
+    font-size: 14px;
+    font-weight: 500;
+    display: none;
+  }
+
+  .count-banner.show { display: block; }
+</style>
+</head>
+<body>
+
+<div class="safe-top"></div>
+<header>
+  <h1>Comunicati FIGC Veneto</h1>
+  <div class="status" id="status">Caricamento...</div>
+</header>
+<div class="count-banner" id="banner"></div>
+<div id="content">
+  <div class="loading">
+    <div class="spinner"></div>
+    Caricamento comunicati...
+  </div>
+</div>
+
+<script>
+const STORAGE_KEY = 'seenComunicatiIDs';
+const DATA_URL = 'data.json';
+
+function getSeenIDs() {
+  try { return new Set(JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]')); }
+  catch { return new Set(); }
+}
+
+function saveSeenIDs(ids) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify([...ids]));
+}
+
+function formatDate(dateStr) {
+  if (!dateStr) return '';
+  const parts = dateStr.split('/');
+  if (parts.length !== 3) return dateStr;
+  return `${parts[0]}/${parts[1]}/20${parts[2]}`;
+}
+
+function formatLastUpdate(isoStr) {
+  const d = new Date(isoStr);
+  return d.toLocaleString('it-IT', {
+    day: '2-digit', month: '2-digit', year: 'numeric',
+    hour: '2-digit', minute: '2-digit'
+  });
+}
+
+async function loadData() {
+  const res = await fetch(DATA_URL + '?t=' + Date.now());
+  return res.json();
+}
+
+function render(data) {
+  const seenIDs = getSeenIDs();
+  const comunicati = data.comunicati || [];
+
+  // Find new ones
+  const newIDs = comunicati
+    .map(c => c.number)
+    .filter(n => !seenIDs.has(n));
+
+  // Update status
+  document.getElementById('status').textContent =
+    'Aggiornato: ' + formatLastUpdate(data.lastUpdate);
+
+  // Show banner if new
+  const banner = document.getElementById('banner');
+  if (newIDs.length > 0 && seenIDs.size > 0) {
+    banner.textContent = newIDs.length === 1
+      ? '1 nuovo comunicato!'
+      : `${newIDs.length} nuovi comunicati!`;
+    banner.classList.add('show');
+  }
+
+  // Render list
+  const content = document.getElementById('content');
+  if (comunicati.length === 0) {
+    content.innerHTML = `
+      <div class="empty">
+        <div class="empty-icon">📋</div>
+        <p>Nessun comunicato trovato</p>
+        <button class="refresh-btn" onclick="location.reload()">Riprova</button>
+      </div>`;
+    return;
+  }
+
+  const listHTML = comunicati.map(c => {
+    const isNew = !seenIDs.has(c.number) && seenIDs.size > 0;
+    return `
+      <div class="item">
+        <div class="item-info">
+          <div class="item-title">
+            ${c.title}${isNew ? '<span class="badge-new">NUOVO</span>' : ''}
+          </div>
+          ${c.date ? `<div class="item-date">${formatDate(c.date)}</div>` : ''}
+        </div>
+        <div class="item-actions">
+          <a class="btn-icon" href="${c.viewURL}" target="_blank" rel="noopener" title="Visualizza">
+            👁
+          </a>
+          <a class="btn-icon" href="${c.downloadURL}" target="_blank" rel="noopener" title="Scarica">
+            ⬇
+          </a>
+        </div>
+      </div>`;
+  }).join('');
+
+  content.innerHTML = `<div class="list">${listHTML}</div>`;
+
+  // Mark all as seen
+  const allIDs = new Set(comunicati.map(c => c.number));
+  saveSeenIDs(allIDs);
+}
+
+async function init() {
+  try {
+    const data = await loadData();
+    render(data);
+  } catch (err) {
+    document.getElementById('content').innerHTML = `
+      <div class="empty">
+        <div class="empty-icon">⚠️</div>
+        <p>Errore nel caricamento</p>
+        <button class="refresh-btn" onclick="location.reload()">Riprova</button>
+      </div>`;
+    document.getElementById('status').textContent = 'Errore di connessione';
+  }
+}
+
+// Register Service Worker
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('sw.js');
+}
+
+init();
+</script>
+</body>
+</html>

@@ -1,0 +1,21 @@
+{
+  "name": "Comunicati FIGC Veneto",
+  "short_name": "Comunicati",
+  "description": "Comunicati ufficiali FIGC Comitato Regionale Veneto",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#f2f2f7",
+  "theme_color": "#004b87",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

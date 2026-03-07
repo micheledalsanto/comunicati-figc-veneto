@@ -1,0 +1,41 @@
+name: Aggiorna Comunicati
+
+on:
+  schedule:
+    - cron: '0 * * * *'  # Ogni ora
+  workflow_dispatch:        # Manuale
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Scarica comunicati
+        run: node scripts/scrape.mjs
+
+      - name: Notifica push se ci sono nuovi comunicati
+        if: hashFiles('new_comunicati.txt') != ''
+        env:
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+        run: |
+          MSG=$(cat new_comunicati.txt)
+          curl -s \
+            -H "Title: Nuovo Comunicato FIGC Veneto" \
+            -H "Priority: high" \
+            -H "Tags: soccer" \
+            -d "$MSG" \
+            "https://ntfy.sh/${NTFY_TOPIC}"
+
+      - name: Pubblica se ci sono novità
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add docs/data.json
+          git diff --staged --quiet || (git commit -m "Aggiornamento comunicati $(date -u +%Y-%m-%d\ %H:%M)" && git push)
