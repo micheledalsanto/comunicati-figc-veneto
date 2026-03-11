@@ -1,10 +1,17 @@
 {
-  "lastUpdate": "2026-03-11T12:40:12.274Z",
+  "lastUpdate": "2026-03-11T14:00:06.608Z",
   "comunicati": [
+    {
+      "number": 77,
+      "title": "Comunicato 77",
+      "date": "",
+      "viewURL": "https://www.figcvenetocalcio.it/download.ashx?act=vis&file=%2ffiles%2f2178%2f0%2fFile%2f6627%2fCom_77.pdf",
+      "downloadURL": "https://www.figcvenetocalcio.it/download.ashx?act=download&file=%2ffiles%2f2178%2f0%2fFile%2f6627%2fCom_77.pdf"
+    },
     {
       "number": 76,
       "title": "Comunicato 76",
-      "date": "",
+      "date": "11/03/26",
       "viewURL": "https://www.figcvenetocalcio.it/download.ashx?act=vis&file=%2ffiles%2f2178%2f0%2fFile%2f6627%2fCom_76.pdf",
       "downloadURL": "https://www.figcvenetocalcio.it/download.ashx?act=download&file=%2ffiles%2f2178%2f0%2fFile%2f6627%2fCom_76.pdf"
     },
